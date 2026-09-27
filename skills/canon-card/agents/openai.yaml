@@ -1,0 +1,4 @@
+interface:
+  display_name: Canon Card
+  short_description: 缺口经检索定位后成卡
+  default_prompt: 用 $canon-card 把这条缺口落实成卡片。

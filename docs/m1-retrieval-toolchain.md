@@ -82,6 +82,7 @@ python scripts/retrieve.py zotero-find-doi --doi 10.xxxx/yyyy
 
 | 变量 | 用途 | 必需性 |
 | --- | --- | --- |
+| `CANON_WRIGHT_HOME` | 产品仓库根目录，脚本按它定位 | 技能运行脚本时必需 |
 | `CANON_MAILTO` | 进 Crossref / OpenAlex 的 polite pool，显著降低 429 | 强烈建议 |
 | `ZOTERO_API_KEY` | Zotero API 访问权限（当前只需只读） | 用 Zotero 时必需 |
 | `ZOTERO_LIBRARY_ID` | Zotero 数字用户 ID | 用 Zotero 时必需 |

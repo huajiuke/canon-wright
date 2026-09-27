@@ -13,11 +13,20 @@ metadata:
 
 缺口必须已在 `gaps/inbox.md` 里，且带 `chosen_direction`。没有就先走 `$canon-gap`——方向未定就检索，等于替作者做取舍。
 
+脚本在产品仓库里，不在小说库里。用环境变量 `CANON_WRIGHT_HOME` 定位它，不要写死路径：
+
+```powershell
+python "$env:CANON_WRIGHT_HOME\scripts\retrieve.py" ...
+python "$env:CANON_WRIGHT_HOME\scripts\cards.py" ... --vault <库根>
+```
+
+没设这个变量就先问作者产品仓库在哪。
+
 ## 流程
 
 ### 1. 定位
 
-按 `chosen_direction` 用 `scripts/retrieve.py` 检索（命令与已知坑见 `docs/m1-retrieval-toolchain.md`）。先粗后细：`search-classic` / `search-paper` 找候选，再用 `toc-classic`、`locate-classic`、`verify-doi` 收窄。
+按 `chosen_direction` 用 `retrieve.py` 检索（命令与已知坑见产品仓库的 `docs/m1-retrieval-toolchain.md`）。先粗后细：`search-classic` / `search-paper` 找候选，再用 `toc-classic`、`locate-classic`、`verify-doi` 收窄。
 
 拿不到 `locator` 或 `obtained` 的候选**直接丢弃**，不要降级交付。宁可少给。
 
@@ -47,7 +56,7 @@ metadata:
 ### 5. 校验
 
 ```bash
-python scripts/cards.py check
+python "$env:CANON_WRIGHT_HOME\scripts\cards.py" check --vault <库根>
 ```
 
 有问题必须修到通过，不要放过。
@@ -58,7 +67,7 @@ python scripts/cards.py check
 
 ## 硬规则
 
-- **无归属不入库。** `belongs_to` 挂不上书/章/人物/主题时，卡先落 `canon/staging/`，30 天后由 `scripts/cards.py sweep` 归档。这是设计，不是处罚。
+- **无归属不入库。** `belongs_to` 挂不上书/章/人物/主题时，卡先落 `canon/staging/`，30 天后由 `cards.py sweep` 归档。这是设计，不是处罚。
 - **不用摘要替代原文。** `segment` 是逐字片段，不是内容概括。
 - **不臆造 locator。** 拿不到就丢弃；现代书的页码需人工在图书馆或数据库站内查得后回填，回填时把 `obtained` 标为 `人工回填`。
 - **不抓现代版权书全文。** 现代书只做题录核验与定位，正文片段由作者从合法渠道摘录。

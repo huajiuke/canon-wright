@@ -444,24 +444,25 @@ def command_selftest(args):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(prog='cards.py', description='卡片与暂存区操作')
-    parser.add_argument('--vault', help='库根目录，默认向上查找 .canon/config.yml')
+    common = argparse.ArgumentParser(add_help=False)
+    common.add_argument('--vault', help='库根目录，默认向上查找 .canon/config.yml')
     sub = parser.add_subparsers(dest='command', required=True)
 
-    p = sub.add_parser('check', help='校验卡片三要素、版本绑定与归属')
+    p = sub.add_parser('check', parents=[common], help='校验卡片三要素、版本绑定与归属')
     p.set_defaults(handler=command_check)
 
-    p = sub.add_parser('new-id', help='生成下一个卡片 id')
+    p = sub.add_parser('new-id', parents=[common], help='生成下一个卡片 id')
     p.add_argument('--date')
     p.set_defaults(handler=command_new_id)
 
-    p = sub.add_parser('staging', help='列出暂存区卡片与剩余归档天数')
+    p = sub.add_parser('staging', parents=[common], help='列出暂存区卡片与剩余归档天数')
     p.set_defaults(handler=command_staging)
 
-    p = sub.add_parser('sweep', help='无归属卡转入暂存区；超期卡归档（默认 dry-run）')
+    p = sub.add_parser('sweep', parents=[common], help='无归属卡转入暂存区；超期卡归档（默认 dry-run）')
     p.add_argument('--apply', action='store_true', help='真正执行移动与归档')
     p.set_defaults(handler=command_sweep)
 
-    p = sub.add_parser('selftest', help='离线自检，不读写库')
+    p = sub.add_parser('selftest', parents=[common], help='离线自检，不读写库')
     p.set_defaults(handler=command_selftest)
 
     args = parser.parse_args(argv)
