@@ -1,0 +1,19 @@
+vault_version: 1
+
+paths:
+  manuscript: manuscript
+  cards: canon/cards
+  entities: canon/entities
+  motifs: canon/motifs
+  staging: canon/staging
+  gaps: gaps/inbox.md
+  inbox: inbox.md
+  reports: reports
+
+rules:
+  staging_archive_days: 30
+  reading_task_max_minutes: 30
+  citation_grace_days: 14
+
+metrics:
+  citation_rate_target: 0.60
