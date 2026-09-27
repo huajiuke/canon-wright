@@ -65,8 +65,8 @@ locator:
 
 ```bash
 python scripts/retrieve.py selftest                     # 离线自检，不联网
-python scripts/retrieve.py search-paper  --query "..." [--lang zh] [--year-from 2000] [--limit 8]
-python scripts/retrieve.py verify-doi    --doi 10.xxxx/yyyy
+python scripts/retrieve.py search-paper  --query "..." [--lang zh] [--year-from 2000] [--limit 8] [--allow-article]
+python scripts/retrieve.py verify-doi    --doi 10.xxxx/yyyy [--allow-article]
 python scripts/retrieve.py search-classic --query "錢法" [--limit 8]
 python scripts/retrieve.py locate-classic --query "古今圖書集成 錢法" [--limit 5]
 python scripts/retrieve.py toc-classic   --title "大明會典" [--limit 200]
@@ -83,29 +83,54 @@ python scripts/retrieve.py zotero-find-doi --doi 10.xxxx/yyyy
 | 变量 | 用途 | 必需性 |
 | --- | --- | --- |
 | `CANON_MAILTO` | 进 Crossref / OpenAlex 的 polite pool，显著降低 429 | 强烈建议 |
-| `ZOTERO_API_KEY` | Zotero 写入权限 | 用 Zotero 时必需 |
-| `ZOTERO_LIBRARY_ID` | Zotero 用户库 ID | 用 Zotero 时必需 |
+| `ZOTERO_API_KEY` | Zotero API 访问权限（当前只需只读） | 用 Zotero 时必需 |
+| `ZOTERO_LIBRARY_ID` | Zotero 数字用户 ID | 用 Zotero 时必需 |
 
 密钥只走环境变量，不写进 `config.yml`（该文件在库里，会被提交）。
 
+获取 Zotero 两项凭据（同一页）：
+
+1. 打开 https://www.zotero.org/settings/keys —— 页面顶部 `Your userID for use in API calls is ...` 的数字即 `ZOTERO_LIBRARY_ID`。
+2. `Create new private key` → 勾 `Personal Library` 下的 `Allow library access`。写入权限等卡片写入落地后再开（编辑同一个 key 即可，不必新建）。
+3. 保存时显示的 key 即 `ZOTERO_API_KEY`，**只显示这一次**。
+
+**注意**：userID 不是用户名，同名会 404；当前只支持个人库（`/users/{id}`），群组库未支持。
+
+写入用户级环境变量（PowerShell）：
+
+```powershell
+[Environment]::SetEnvironmentVariable('ZOTERO_LIBRARY_ID', '21849729', 'User')
+[Environment]::SetEnvironmentVariable('ZOTERO_API_KEY', '<key>', 'User')
+[Environment]::SetEnvironmentVariable('CANON_MAILTO', '<邮箱>', 'User')
+```
+
+**设完必须重启 Codex**：已经在跑的进程读不到新变量，`zotero-check` 会继续报缺变量。已实测确认这一点。
+
+自检：`python scripts/retrieve.py zotero-check` 应返回 `status: ok`；`sample: false` 只表示该库当前没有任何条目。
+
 ## 6. 门禁与可读完原则
 
-`locator_grade` 四级，等级不够即丢弃：
+`locator_grade` 五级，等级不够即丢弃：
 
 | 等级 | 含义 | 例 |
 | --- | --- | --- |
 | `leaf` | 叶次 | 第 12 叶 |
 | `page` | 页码 | 页码 189-192 |
+| `article` | 整篇：期刊只给文章号或未收录页码，整篇即阅读单元 | 文章号 e202318026 |
 | `volume` | 卷/门类/篇 | 卷之三十九 |
-| `coarse` | 只有卷期或体积未知，定位不足以直接去读 | 卷 41 第 1 期 |
+| `coarse` | 定位不足以直接去读 | 体积未知的古籍页 |
 
 最低门槛：论文 `page`，古籍 `volume`。
+
+`article` 默认**不通过**：整篇可能是 30 页，无从判断是否可读完。要让流程接受整篇，需显式加 `--allow-article`——把「这篇我想整篇读」的判断权交回作者，而不是工具默认放宽（宪法第 2 节第 4 条：AI 不做取舍）。
 
 宪法第 2 节第 7 条的「30 分钟可读完」也在这里机械落实：`READABLE_BYTES = 12000`（文言文按 30 分钟约 4000 字估算）。古籍命中页体积超限即降为 `coarse` 被丢弃，逼着流程用 `toc-classic` 继续收窄到门类。实测《錢法論》（856 字）通过，《錢氏私志》（过长）被丢弃。
 
 ## 7. 已知精度问题
 
 **检索式质量决定结果质量。** 实测用 `明代 钱法` 查 OpenAlex，返回的是铀矿床论文与虚拟货币洗钱论文——古代钱法与当代货币被混在一起，相关性很差。这不是 bug，是这些索引对文言与专门史的语义不敏感。
+
+**期刊页码正在消失。** 不少期刊不给页码、只给文章号（实测 `e202318026`、`9140057`），Heritage Science 这类连 Crossref 都没有 `page` 字段。所以「页码级」对相当一部分论文根本不存在，`article` 等级就是为它们设的。文章号必须与真页码区分：把 `e202318026` 当页码会让 `pages` 谎报成 1 页，而文章号只说明「整篇」、不说明长度。`classify_page()` 负责这个判定。
 
 因此 M1 的模型步骤（把缺口转成检索式）很关键，要点：
 
