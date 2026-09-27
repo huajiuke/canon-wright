@@ -11,10 +11,10 @@
 | 路径 | 用途 | 谁写 |
 | --- | --- | --- |
 | `manuscript/book-01/` | 章节正文，**唯一真相**，不含任何元数据 | 作者 |
-| `canon/cards/` | 知识卡：原文片段 + 出处 | 技能（M1 起） |
+| `canon/cards/` | 知识卡：原文片段 + 出处。`_template.md` 是模板，脚本按 `_` 前缀跳过 | 技能 `canon-card` |
 | `canon/entities/` | 设定实体：人物 / 地点 / 器物 / 组织 | 作者 + 技能（M2 起） |
 | `canon/motifs/` | 母题台账 | 作者 |
-| `canon/staging/` | 暂存区：无归属卡，30 天后归档 | 技能 |
+| `canon/staging/` | 暂存区：无归属卡，30 天后归档 | `cards.py sweep` |
 | `gaps/inbox.md` | 缺口台账，唯一的 open 列表 | 技能 `canon-gap` |
 | `gaps/archive/` | 已结算缺口 | 技能 |
 | `inbox.md` | 灵感收件箱，只记不整理 | 作者 |
@@ -32,3 +32,4 @@
 1. 复制本目录成你的小说库，`git init` 并提交。
 2. 把已有章节放进 `manuscript/<book>/ch-001.md`。
 3. 写完一章后召唤 `$canon-gap` 整理这一章暴露的知识缺口。
+4. 落实缺口时召唤 `$canon-card`；定期运行 `python scripts/cards.py sweep` 结算暂存区（默认 dry-run，加 `--apply` 才动手）。
